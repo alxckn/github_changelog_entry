@@ -1,0 +1,3 @@
+#!/usr/bin/env ruby
+require 'github_changelog_entry/cli'
+GithubChangelogEntry::CLI.start
