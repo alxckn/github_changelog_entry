@@ -28,17 +28,18 @@ Or install it yourself as:
 
 This will use all of the issues created since the last release.
 
-### Choose a given release
+### List of options
 
-`gce generate -t <github_token> -r <repo_name> -o 2.9.1`
+```
+  -l, [--default-to-latest-tag], [--no-default-to-latest-tag]  # If false, will not try to limit the query to the issues created after a given tag
+                                                               # Default: true
+  -o, [--origin-tag=ORIGIN_TAG]                                # Choose a given tag as an origin
+  -m, [--milestone-number=MILESTONE_NUMBER]                    # Select issues linked to this milestone (the number needs to be in the milestone title separated by spaces)
+  -s, [--issue-state=ISSUE_STATE]                              # Override the state parameter
+                                                               # Default: closed
+                                                               # Possible values: open, closed, all
 
-This will use all of the issues created since the `2.9.1` release.
-
-### Filter by milestone
-
-`gce generate -t <github_token> -r <repo_name> -o 2.9.1 -m 2`
-
-This will use all of the issues created since the `2.9.1` release linked to a milestone with ` 2 ` in the title.
+```
 
 ## Development
 

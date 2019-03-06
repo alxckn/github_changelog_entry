@@ -8,20 +8,26 @@ module GithubChangelogEntry
       @repo = repo
     end
 
-    def closed_issues_after_tag(tag_name = nil, milestone_number = nil)
-      return unless tag_commit = commit(tag_name)
+    def closed_issues(options = {})
+      filters = { state: "closed" }
 
-      filters = {
-        state: "closed",
-        since: tag_commit[:commit][:committer][:date]
-      }
+      tag_commit = if options["origin_tag"]
+        commit(options["origin_tag"])
+      elsif options["default_to_latest_tag"]
+        commit(nil)
+      end
+      filters = filters.merge(since: tag_commit[:commit][:committer][:date]) if tag_commit
 
-      if milestone_number
-        m = milestone(milestone_number)
+      if options["milestone_number"]
+        m = milestone(options["milestone_number"])
         unless m.nil?
           filters.merge!(milestone: m[:number])
           puts Paint["Using milestone #{m[:title]}", :blue]
         end
+      end
+
+      if options["issue_state"]
+        filters.merge!(state: options["issue_state"])
       end
 
       client.list_issues(@repo, filters).reject { |issue| issue.key?(:pull_request) }
