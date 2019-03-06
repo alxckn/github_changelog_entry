@@ -1,15 +1,15 @@
-# GithubChangelogEntry
+# Github Changelog Entry
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/github_changelog_entry`. To experiment with that code, run `bin/console` for an interactive prompt.
+Simple changelog assistant for a team working with github. Fetches issues from github and outputs them in a format that can be copy pasted into your changelog and edited to fit your needs.
 
-TODO: Delete this and the text above, and describe your gem
+The idea here is NOT to have a fully automatic changelog.
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'github_changelog_entry'
+gem "github_changelog_entry"
 ```
 
 And then execute:
@@ -22,7 +22,23 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+### Generating a new changelog entry
+
+`gce generate -t <github_token> -r <repo_name>`
+
+This will use all of the issues created since the last release.
+
+### Choose a given release
+
+`gce generate -t <github_token> -r <repo_name> -o 2.9.1`
+
+This will use all of the issues created since the `2.9.1` release.
+
+### Filter by milestone
+
+`gce generate -t <github_token> -r <repo_name> -o 2.9.1 -m 2`
+
+This will use all of the issues created since the `2.9.1` release linked to a milestone with ` 2 ` in the title.
 
 ## Development
 
@@ -32,4 +48,4 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/github_changelog_entry.
+Bug reports and pull requests are welcome on GitHub at https://github.com/alxckn/github_changelog_entry.
