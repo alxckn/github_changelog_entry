@@ -26,20 +26,44 @@ Or install it yourself as:
 
 `gce generate -t <github_token> -r <repo_name>`
 
-This will use all of the issues created since the last release.
+This will use all of the issues from the repo.
+
+To find all of the issues in current milestone and zenhub pipeline `Done`, you can use:
+
+`gce g -r <repo_name> -m 19 -p "In Progress"`
 
 ### List of options
 
 ```
+Usage:
+  gce generate
+
+Options:
   -l, [--default-to-latest-tag], [--no-default-to-latest-tag]  # If false, will not try to limit the query to the issues created after a given tag
-                                                               # Default: true
   -o, [--origin-tag=ORIGIN_TAG]                                # Choose a given tag as an origin
   -m, [--milestone-number=MILESTONE_NUMBER]                    # Select issues linked to this milestone (the number needs to be in the milestone title separated by spaces)
   -s, [--issue-state=ISSUE_STATE]                              # Override the state parameter
-                                                               # Default: closed
+                                                               # Default: all
                                                                # Possible values: open, closed, all
+  -p, [--pipeline=PIPELINE]                                    # Define a zenhub pipeline parameter to filter with
+  -r, [--repo=REPO]                                            # Repository
+  -t, [--token=TOKEN]                                          # Github token
+  -z, [--zenhub-token=ZENHUB_TOKEN]                            # Zenhub token
+```
+
+### Save credentials
+
+You can save your credentials in `~/.config/gce/.creds` as json:
 
 ```
+{
+  "github": "<github_token>",
+  "zenhub": "<zenhub_token>"
+}
+
+```
+
+They will be used unless overriden by a command line argument.
 
 ## Development
 
