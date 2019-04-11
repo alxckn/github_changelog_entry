@@ -1,5 +1,7 @@
 require "octokit"
 require "paint"
+require "byebug"
+require "pp"
 
 module GithubChangelogEntry
   class Github
@@ -8,7 +10,7 @@ module GithubChangelogEntry
       @repo = repo
     end
 
-    def closed_issues(options = {})
+    def issues(options = {}, zenhub_handler)
       filters = { state: "closed" }
 
       tag_commit = if options["origin_tag"]
@@ -30,7 +32,16 @@ module GithubChangelogEntry
         filters.merge!(state: options["issue_state"])
       end
 
-      client.list_issues(@repo, filters).reject { |issue| issue.key?(:pull_request) }
+      issues = client.list_issues(@repo, filters).reject { |issue| issue.key?(:pull_request) }
+
+      if options["pipeline"] && zenhub_handler
+        repo_id = client.repository(@repo).id
+        issues = issues.select do |issue|
+          zenhub_handler.issue_pipeline(repo_id, issue.number) == options["pipeline"]
+        end
+      end
+
+      issues
     end
 
     private
