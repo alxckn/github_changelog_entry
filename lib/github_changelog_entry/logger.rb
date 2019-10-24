@@ -1,7 +1,7 @@
 require "github_changelog_entry/github"
 
 module GithubChangelogEntry
-  class Generator
+  class Logger
     def generate(issues)
       print_version
 

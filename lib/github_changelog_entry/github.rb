@@ -10,18 +10,16 @@ module GithubChangelogEntry
       @repo = repo
     end
 
-    def issues(options = {}, zenhub_handler)
+    def issues(options = {}, ext_filters)
       filters = { state: "closed" }
 
-      tag_commit = if options["origin_tag"]
-        commit(options["origin_tag"])
-      elsif options["default_to_latest_tag"]
-        commit(nil)
+      tag_commit = if options["since"]
+        commit(options["since"])
       end
       filters = filters.merge(since: tag_commit[:commit][:committer][:date]) if tag_commit
 
-      if options["milestone_number"]
-        m = milestone(options["milestone_number"])
+      if options["milestone"]
+        m = milestone(options["milestone"])
         unless m.nil?
           filters.merge!(milestone: m[:number])
           puts Paint["Using milestone #{m[:title]}", :blue]
@@ -34,10 +32,10 @@ module GithubChangelogEntry
 
       issues = client.list_issues(@repo, filters).reject { |issue| issue.key?(:pull_request) }
 
-      if options["pipeline"] && zenhub_handler
+      if ext_filters && ext_filters.any?
         repo_id = client.repository(@repo).id
         issues = issues.select do |issue|
-          zenhub_handler.issue_pipeline(repo_id, issue.number) == options["pipeline"]
+          ext_filters.all? { |filter| filter.keep?(repo_id, issue.number) }
         end
       end
 
@@ -47,7 +45,7 @@ module GithubChangelogEntry
     private
 
     def milestone(number)
-      client.list_milestones(@repo).find { |m| m[:title].include?(" #{number} ") }
+      client.milestone(@repo, number)
     end
 
     def commit(tag_name)
