@@ -32,6 +32,7 @@ module GithubChangelogEntry
 
         if @zenhub_token
           to_r << GithubChangelogEntry::Filters::Zenhub::Pipeline.new(@zenhub_token, options[:zenhub_opts])
+          to_r << GithubChangelogEntry::Filters::Zenhub::Epic.new(@zenhub_token, options[:zenhub_opts])
         end
 
         to_r
@@ -41,7 +42,7 @@ module GithubChangelogEntry
     desc "generate", "Generates a new changelog raw entry"
     option :since, aliases: "-s", desc: %q{Tag or commit sha after which we want to search for issues}
     option :milestone, aliases: "-m", desc: %q{Select issues linked to these milestones (ids)}
-    option :issue_state, aliases: "-s", default: "all", enum: ["open", "closed", "all"], desc: %q{Show only closed or open issues}
+    option :issue_state, default: "all", enum: ["open", "closed", "all"], desc: %q{Show only closed or open issues}
     option :zenhub_opts, type: :hash, desc: %q{Defines zenhub options}
     def generate
       puts Paint["Generating a new changelog entry", :blue, :bold]

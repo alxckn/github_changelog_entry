@@ -3,6 +3,8 @@ require "paint"
 require "byebug"
 require "pp"
 
+Octokit.auto_paginate = true
+
 module GithubChangelogEntry
   class Github
     def initialize(github_token, repo)
