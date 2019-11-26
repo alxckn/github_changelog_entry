@@ -15,10 +15,11 @@ module GithubChangelogEntry
     def issues(options = {}, ext_filters)
       filters = { state: "closed" }
 
-      tag_commit = if options["since"]
-        commit(options["since"])
+      if options["since"]
+        since = Date.strptime(options["since"], '%Y-%m-%d').to_datetime.iso8601
+        filters = filters.merge(since: since)
+        puts Paint["Looking for issues after #{since}", :blue]
       end
-      filters = filters.merge(since: tag_commit[:commit][:committer][:date]) if tag_commit
 
       if options["milestone"]
         m = milestone(options["milestone"])
@@ -48,31 +49,6 @@ module GithubChangelogEntry
 
     def milestone(number)
       client.milestone(@repo, number)
-    end
-
-    def commit(tag_name)
-      tag = tag_name ? tags[clean_tag_name(tag_name)] : tags[tags.keys.sort.last]
-
-      puts Paint["Using tag version #{clean_tag_ref(tag[:ref])}", :blue]
-
-      client.commit(@repo, tag[:object][:sha])
-    end
-
-    def tags
-      @tags ||= Hash[
-        client.refs(@repo, :tag)
-        .map { |ref| [clean_tag_ref(ref[:ref]), ref] }
-        .reject { |ref| ref[0].nil? }
-      ]
-    end
-
-    def clean_tag_ref(ref)
-      tag = ref.match(/(\d+\.)?(\d+\.)?(\*|\d+)$/)
-      tag[0] if tag
-    end
-
-    def clean_tag_name(tag_name)
-      tag_name.gsub("v", "")
     end
 
     def client
