@@ -44,7 +44,7 @@ module GithubChangelogEntry
     option :since, aliases: "-s", desc: %q{Date after which we want to search for issues}
     option :milestone, aliases: "-m", desc: %q{Select issues linked to these milestones (ids)}
     option :issue_state, default: "all", enum: ["open", "closed", "all"], desc: %q{Show only closed or open issues}
-    option :zenhub_opts, type: :hash, desc: %q{Defines zenhub options}
+    option :zenhub_opts, type: :hash, desc: %q{Defines zenhub options}, default: {}
     def generate
       puts Paint["Generating a new changelog entry", :blue, :bold]
 
