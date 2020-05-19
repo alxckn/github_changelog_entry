@@ -34,12 +34,30 @@ module GithubChangelogEntry
       end
 
       issues = client.list_issues(@repo, filters).reject { |issue| issue.key?(:pull_request) }
+      github_issues_size = issues.size
+      puts Paint["-> Retrieved #{github_issues_size} issues from github", :blue]
 
       if ext_filters && ext_filters.any?
+        puts Paint["Applying filters: #{ext_filters.map { |f| f.class.to_s }.join(", ")}", :blue]
+
         repo_id = client.repository(@repo).id
-        issues = issues.select do |issue|
-          ext_filters.all? { |filter| filter.keep?(repo_id, issue.number) }
+
+        issues_w_result = issues.map do |issue|
+          {
+            issue: issue,
+            result_thread: Thread.new do
+              Thread.current[:result] = ext_filters.all? { |filter| filter.keep?(repo_id, issue.number) }
+            end
+          }
         end
+
+        issues_w_result.each do |iwt|
+          iwt[:result_thread].join
+          iwt[:result] = iwt[:result_thread][:result]
+        end
+
+        issues = issues_w_result.select { |iwt| iwt[:result] }.map { |iwt| iwt[:issue] }
+        puts Paint["-> Filtered out #{github_issues_size - issues.size} issues using filters", :blue]
       end
 
       issues
