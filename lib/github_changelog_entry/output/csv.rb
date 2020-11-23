@@ -11,7 +11,7 @@ module GithubChangelogEntry
           url
           estimate
         ]
-        puts headers.join(";")
+        Logger.instance.info(headers.join(";"))
 
         issues_w_zenhub.each do |iwz|
           issue = iwz[:issue]
@@ -25,7 +25,7 @@ module GithubChangelogEntry
             zenhub_data["estimate"]["value"],
           ]
 
-          puts data.join(";")
+          Logger.instance.warn(data.join(";"))
         end
       end
 

@@ -18,14 +18,14 @@ module GithubChangelogEntry
       if options["since"]
         since = Date.strptime(options["since"], '%Y-%m-%d').to_datetime.iso8601
         filters = filters.merge(since: since)
-        puts Paint["Looking for issues after #{since}", :blue]
+        Logger.instance.info("Looking for issues after #{since}", [:blue])
       end
 
       if options["milestone"]
         m = milestone(options["milestone"])
         unless m.nil?
           filters.merge!(milestone: m[:number])
-          puts Paint["Using milestone #{m[:title]}", :blue]
+          Logger.instance.info("Using milestone #{m[:title]}", [:blue])
         end
       end
 
@@ -35,16 +35,16 @@ module GithubChangelogEntry
 
       issues = client.list_issues(@repo, filters).reject { |issue| issue.key?(:pull_request) }
       github_issues_size = issues.size
-      puts Paint["-> Retrieved #{github_issues_size} issues from github", :blue]
+      Logger.instance.info("-> Retrieved #{github_issues_size} issues from github", [:blue])
 
       # Here we "augment" issues with zenhub info
       issues_w_zenhub = augment_issues_with_zenhub_data(issues, zenhub_fetcher)
 
       if ext_filters && ext_filters.any?
-        puts Paint["Applying filters: #{ext_filters.map { |f| f.class.to_s }.join(", ")}", :blue]
+        Logger.instance.info("Applying filters: #{ext_filters.map { |f| f.class.to_s }.join(", ")}", [:blue])
 
         issues_w_zenhub = issues_w_zenhub.select { |iwz| ext_filters.all? { |filter| filter.keep?(iwz) } }
-        puts Paint["-> Filtered out #{github_issues_size - issues_w_zenhub.size} issues using filters", :blue]
+        Logger.instance.info("-> Filtered out #{github_issues_size - issues_w_zenhub.size} issues using filters", [:blue])
       end
 
       issues_w_zenhub

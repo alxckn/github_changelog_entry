@@ -3,6 +3,7 @@ require "paint"
 require "json"
 require "byebug"
 
+require "github_changelog_entry/logger"
 require "github_changelog_entry/github"
 require "github_changelog_entry/zenhub_issue_fetcher"
 
@@ -20,6 +21,7 @@ module GithubChangelogEntry
     class_option :repo,  desc: "Repository",   aliases: "-r", required: false
     class_option :token, desc: "Github token", aliases: "-t", required: false
     class_option :zenhub_token, desc: "Zenhub token", aliases: "-z", required: false
+    class_option :quiet, desc: "Removes some logs", aliases: "-q", required: false, type: :boolean
 
     no_commands do
       def set_tokens
@@ -52,7 +54,11 @@ module GithubChangelogEntry
     option :zenhub_opts, type: :hash, desc: %q{Defines zenhub options}, default: {}
     option :output, aliases: "-o", desc: %q{Output type: changelog or csv}, default: "changelog"
     def generate
-      puts Paint["Generating a new changelog entry", :blue, :bold]
+      if options[:quiet]
+        Logger.instance.set_level(:warn)
+      end
+
+      Logger.instance.info("Generating a new changelog entry", [:blue, :bold])
 
       set_tokens
 
