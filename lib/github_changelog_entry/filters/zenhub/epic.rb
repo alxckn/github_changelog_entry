@@ -3,10 +3,13 @@ module GithubChangelogEntry
     module Zenhub
       class Epic < Base
 
-        def keep?(repo_id, issue_number)
+        def keep?(issue_w_zenhub)
           return true if !options["epic"]
 
-          epic(repo_id)["issues"].any? { |issue| repo_id == issue["repo_id"] && issue_number == issue["issue_number"] }
+          epic(repo_id)["issues"].any? do |issue|
+            repo_id == issue_w_zenhub[:issue]["repo_id"] &&
+            issue_number == issue_w_zenhub[:issue]["issue_number"]
+          end
         end
 
         private

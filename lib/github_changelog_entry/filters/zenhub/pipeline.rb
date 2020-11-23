@@ -3,10 +3,9 @@ module GithubChangelogEntry
     module Zenhub
       class Pipeline < Base
 
-        def keep?(repo_id, issue_number)
+        def keep?(issue_w_zenhub)
           return true if !options["pipeline"]
-          fetch_issue(repo_id, issue_number).dig("pipeline", "name") == options["pipeline"]
-
+          issue_w_zenhub[:zenhub_data].dig("pipeline", "name") == options["pipeline"]
         rescue RestClient::Forbidden => e
           puts "Request to zenhub failed: #{e.message}, #{e.response.body}"
           false

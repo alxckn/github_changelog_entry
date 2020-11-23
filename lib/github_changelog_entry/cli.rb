@@ -4,11 +4,16 @@ require "json"
 require "byebug"
 
 require "github_changelog_entry/github"
-require "github_changelog_entry/logger"
+require "github_changelog_entry/zenhub_issue_fetcher"
 
+# Filters
 require "github_changelog_entry/filters/zenhub/base"
 require "github_changelog_entry/filters/zenhub/pipeline"
 require "github_changelog_entry/filters/zenhub/epic"
+
+# Outputs
+require "github_changelog_entry/output/changelog"
+require "github_changelog_entry/output/csv"
 
 module GithubChangelogEntry
   class CLI < Thor
@@ -32,8 +37,8 @@ module GithubChangelogEntry
         to_r = []
 
         if @zenhub_token
-          to_r << GithubChangelogEntry::Filters::Zenhub::Pipeline.new(@zenhub_token, options[:zenhub_opts])
-          to_r << GithubChangelogEntry::Filters::Zenhub::Epic.new(@zenhub_token, options[:zenhub_opts])
+          to_r << GithubChangelogEntry::Filters::Zenhub::Pipeline.new(options[:zenhub_opts])
+          to_r << GithubChangelogEntry::Filters::Zenhub::Epic.new(options[:zenhub_opts])
         end
 
         to_r
@@ -45,17 +50,25 @@ module GithubChangelogEntry
     option :milestone, aliases: "-m", desc: %q{Select issues linked to these milestones (ids)}
     option :issue_state, default: "all", enum: ["open", "closed", "all"], desc: %q{Show only closed or open issues}
     option :zenhub_opts, type: :hash, desc: %q{Defines zenhub options}, default: {}
+    option :output, aliases: "-o", desc: %q{Output type: changelog or csv}, default: "changelog"
     def generate
       puts Paint["Generating a new changelog entry", :blue, :bold]
 
       set_tokens
 
       github_handler = GithubChangelogEntry::Github.new(@github_token, options[:repo])
+      zenhub_fetcher = ZenhubIssueFetcher.new(@zenhub_token) if @zenhub_token
 
       issues_options = options.select { |key, value| %w[since milestone issue_state].include?(key) }
-      issues = github_handler.issues(issues_options, filters)
+      issues = github_handler.issues(issues_options, zenhub_fetcher, filters)
 
-      GithubChangelogEntry::Logger.new.generate(issues)
+      if options[:output] == "changelog"
+        GithubChangelogEntry::Output::Changelog.new.generate(issues)
+      elsif options[:output] == "csv"
+        GithubChangelogEntry::Output::Csv.new.generate(options[:repo], issues)
+      else
+        raise "Unknown output type"
+      end
     end
   end
 end

@@ -12,7 +12,7 @@ module GithubChangelogEntry
       @repo = repo
     end
 
-    def issues(options = {}, ext_filters)
+    def issues(options = {}, zenhub_fetcher, ext_filters)
       filters = { state: "closed" }
 
       if options["since"]
@@ -37,36 +37,45 @@ module GithubChangelogEntry
       github_issues_size = issues.size
       puts Paint["-> Retrieved #{github_issues_size} issues from github", :blue]
 
+      # Here we "augment" issues with zenhub info
+      issues_w_zenhub = augment_issues_with_zenhub_data(issues, zenhub_fetcher)
+
       if ext_filters && ext_filters.any?
         puts Paint["Applying filters: #{ext_filters.map { |f| f.class.to_s }.join(", ")}", :blue]
 
-        repo_id = client.repository(@repo).id
-
-        issues_w_result = issues.map do |issue|
-          {
-            issue: issue,
-            result_thread: Thread.new do
-              Thread.current[:result] = ext_filters.all? { |filter| filter.keep?(repo_id, issue.number) }
-            end
-          }
-        end
-
-        issues_w_result.each do |iwt|
-          iwt[:result_thread].join
-          iwt[:result] = iwt[:result_thread][:result]
-        end
-
-        issues = issues_w_result.select { |iwt| iwt[:result] }.map { |iwt| iwt[:issue] }
-        puts Paint["-> Filtered out #{github_issues_size - issues.size} issues using filters", :blue]
+        issues_w_zenhub = issues_w_zenhub.select { |iwz| ext_filters.all? { |filter| filter.keep?(iwz) } }
+        puts Paint["-> Filtered out #{github_issues_size - issues_w_zenhub.size} issues using filters", :blue]
       end
 
-      issues
+      issues_w_zenhub
     end
 
     private
 
-    def milestone(number)
-      client.milestone(@repo, number)
+    def augment_issues_with_zenhub_data(issues, zenhub_fetcher)
+      repo_id = client.repository(@repo).id
+
+      issues_w_zenhub = issues.map do |issue|
+        {
+          issue: issue,
+          result_thread: Thread.new do
+            Thread.current[:zenhub_data] = zenhub_fetcher.fetch_issue(repo_id, issue.number)
+          end
+        }
+      end
+
+      issues_w_zenhub.each do |iwz|
+        iwz[:result_thread].join
+        iwz[:zenhub_data] = iwz[:result_thread][:zenhub_data]
+      end
+
+      issues_w_zenhub
+    end
+
+    def milestone(milestone_title)
+      client
+        .list_milestones(@repo, { state: "open", direction: "desc" })
+        .find { |m| m.title == milestone_title }
     end
 
     def client
