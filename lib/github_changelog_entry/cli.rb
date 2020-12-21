@@ -4,6 +4,7 @@ require "json"
 require "byebug"
 
 require "github_changelog_entry/logger"
+require "github_changelog_entry/github_client"
 require "github_changelog_entry/github"
 require "github_changelog_entry/zenhub_issue_fetcher"
 
@@ -61,8 +62,9 @@ module GithubChangelogEntry
       Logger.instance.info("Generating a new changelog entry", [:blue, :bold])
 
       set_tokens
+      GithubClient.instance.set_token(@github_token)
 
-      github_handler = GithubChangelogEntry::Github.new(@github_token, options[:repo])
+      github_handler = Github.new(options[:repo])
       zenhub_fetcher = ZenhubIssueFetcher.new(@zenhub_token) if @zenhub_token
 
       issues_options = options.select { |key, value| %w[since milestone issue_state].include?(key) }

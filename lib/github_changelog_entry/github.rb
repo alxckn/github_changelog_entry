@@ -7,8 +7,7 @@ Octokit.auto_paginate = true
 
 module GithubChangelogEntry
   class Github
-    def initialize(github_token, repo)
-      @github_token = github_token
+    def initialize(repo)
       @repo = repo
     end
 
@@ -79,7 +78,7 @@ module GithubChangelogEntry
     end
 
     def client
-      @client ||= Octokit::Client.new(access_token: @github_token)
+      @client ||= GithubClient.instance.client
     end
   end
 end
