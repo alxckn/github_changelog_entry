@@ -32,6 +32,10 @@ module GithubChangelogEntry
         filters.merge!(state: options["issue_state"])
       end
 
+      if options["assignee"]
+        filters.merge!(assignee: options["assignee"])
+      end
+
       issues = client.list_issues(@repo, filters).reject { |issue| issue.key?(:pull_request) }
       github_issues_size = issues.size
       Logger.instance.info("-> Retrieved #{github_issues_size} issues from github", [:blue])

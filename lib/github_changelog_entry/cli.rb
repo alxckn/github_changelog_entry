@@ -52,6 +52,7 @@ module GithubChangelogEntry
     option :since, aliases: "-s", desc: %q{Date after which we want to search for issues}
     option :milestone, aliases: "-m", desc: %q{Select issues linked to these milestones (ids)}
     option :issue_state, default: "all", enum: ["open", "closed", "all"], desc: %q{Show only closed or open issues}
+    option :assignee, desc: %q{Filter github issues by assignee}
     option :zenhub_opts, type: :hash, desc: %q{Defines zenhub options}, default: {}
     option :output, aliases: "-o", desc: %q{Output type: changelog or csv}, default: "changelog"
     def generate
@@ -67,7 +68,7 @@ module GithubChangelogEntry
       github_handler = Github.new(options[:repo])
       zenhub_fetcher = ZenhubIssueFetcher.new(@zenhub_token) if @zenhub_token
 
-      issues_options = options.select { |key, value| %w[since milestone issue_state].include?(key) }
+      issues_options = options.select { |key, value| %w[since milestone issue_state assignee].include?(key) }
       issues = github_handler.issues(issues_options, zenhub_fetcher, filters)
 
       if options[:output] == "changelog"
